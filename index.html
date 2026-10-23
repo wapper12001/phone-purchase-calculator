@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스마트폰 실질 구입원가 계산기</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+    background: #f5f7fa;
+    margin: 0;
+    padding: 16px;
+    color: #222;
+  }
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  h1 {
+    font-size: 1.4rem;
+    text-align: center;
+    margin: 0 0 8px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
+  .section {
+    margin-bottom: 18px;
+  }
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+    color: #1565c0;
+  }
+  input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: #fafafa;
+    color: #222;
+  }
+  .note {
+    font-size: 0.82rem;
+    color: #666;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .highlight {
+    background: #fff5f5;
+    border: 1px solid #ffcccc;
+    border-radius: 12px;
+    padding: 14px;
+    margin: 16px 0;
+  }
+  .result-box {
+    background: #ffe6e6;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    margin: 16px 0;
+  }
+  .result-box .label {
+    font-size: 0.9rem;
+    color: #555;
+  }
+  .result-box .value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #d32f2f;
+    margin: 4px 0;
+  }
+  .summary {
+    background: #f0f7ff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  .summary h3 {
+    margin: 0 0 10px;
+    font-size: 1.05rem;
+  }
+  .summary ol {
+    margin: 8px 0;
+    padding-left: 20px;
+  }
+  .warning {
+    background: #fff8e1;
+    border-left: 4px solid #ffb300;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-top: 16px;
+    line-height: 1.5;
+  }
+  button {
+    width: 100%;
+    padding: 14px;
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  button:active { background: #1565c0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>스마트폰 최종 실질 구입원가</h1>
+  <div class="subtitle">눈탱이 안 맞으려면 이 계산식만 보세요</div>
+
+  <div class="section">
+    <label>구매하는 기기 가격 / 출고가 (원)</label>
+    <input type="number" id="chulgo" placeholder="예: 1500000">
+  </div>
+
+  <div class="section">
+    <label>현재 사용하는 요금 (월, 원)</label>
+    <input type="number" id="currentPlan" placeholder="예: 55000">
+  </div>
+
+  <div class="section">
+    <label>공시지원금 (원)</label>
+    <input type="number" id="gongsi" placeholder="예: 200000">
+  </div>
+
+  <div class="section">
+    <label>선택약정 24개월 할인 총액 (원)</label>
+    <input type="number" id="seontack" placeholder="예: 240000">
+  </div>
+
+  <div class="section">
+    <label>유통망 지원금 (원)</label>
+    <input type="number" id="yutong" placeholder="예: 100000">
+  </div>
+
+  <div class="section">
+    <label>실제 사용하는 요금제 (월, 원)</label>
+    <input type="number" id="realPlan" placeholder="예: 55000">
+  </div>
+
+  <div class="section">
+    <label>의무 사용 요금제 (월, 원)</label>
+    <input type="number" id="obligationPlan" placeholder="예: 65000">
+  </div>
+
+  <div class="section">
+    <label>의무 사용 개월 수</label>
+    <input type="number" id="obligationMonths" placeholder="예: 6">
+  </div>
+
+  <div class="section">
+    <label>불필요한 부가서비스</label>
+    <div id="addonList"></div>
+    <button type="button" onclick="addAddon()" style="width:auto; padding:8px 16px; margin-top:8px; background:#666;">+ 부가서비스 추가</button>
+  </div>
+
+  <button onclick="calculate()">계산하기</button>
+
+  <div class="result-box" id="resultBox" style="display:none;">
+    <div class="label">스마트폰 최종 원가</div>
+    <div class="value" id="finalPrice">0원</div>
+  </div>
+
+  <div class="summary" id="summary" style="display:none;">
+    <h3>최종 결과 요약</h3>
+    <strong>실질 휴대폰 구매가격</strong><br>
+    (요금은 별개입니다)<br><br>
+    <strong>#익월 청구</strong>
+    <ol>
+      <li>월 단말기 할부금</li>
+      <li>월 요금</li>
+    </ol>
+  </div>
+
+  <div class="warning">
+    ※ 요금도 매월 실질적으로 나가는 요금을 계산하면 됩니다.
+  </div>
+</div>
+
+<script>
+let addonCount = 0;
+
+function addAddon() {
+  addonCount++;
+  const div = document.createElement('div');
+  div.style.marginBottom = '8px';
+  div.innerHTML = `
+    <div style="display:flex; gap:8px; align-items:center;">
+      <input type="number" class="addon-price" placeholder="월 요금 (원)" style="flex:1;">
+      <input type="number" class="addon-months" placeholder="의무 개월" style="width:100px;">
+      <button type="button" onclick="this.parentElement.parentElement.remove()" style="width:auto; padding:8px; background:#e53935;">삭제</button>
+    </div>
+  `;
+  document.getElementById('addonList').appendChild(div);
+}
+
+function calculate() {
+  const chulgo = Number(document.getElementById('chulgo').value) || 0;
+  const gongsi = Number(document.getElementById('gongsi').value) || 0;
+  const seontack = Number(document.getElementById('seontack').value) || 0;
+  const yutong = Number(document.getElementById('yutong').value) || 0;
+  const realPlan = Number(document.getElementById('realPlan').value) || 0;
+  const obligationPlan = Number(document.getElementById('obligationPlan').value) || 0;
+  const obligationMonths = Number(document.getElementById('obligationMonths').value) || 0;
+
+  // 지원금 = max(공시지원금, 선택약정 24개월 할인 총액) + 유통망지원금
+  const support = Math.max(gongsi, seontack) + yutong;
+
+  // 요금제 차액
+  const planDiff = Math.max(0, obligationPlan - realPlan);
+  let extra = planDiff * obligationMonths;
+
+  // 부가서비스 합계
+  document.querySelectorAll('#addonList > div').forEach(row => {
+    const price = Number(row.querySelector('.addon-price').value) || 0;
+    const months = Number(row.querySelector('.addon-months').value) || 0;
+    extra += price * months;
+  });
+
+  // 실질 구입원가 = 출고가 − 지원금 + 추가 비용
+  const final = chulgo - support + extra;
+
+  document.getElementById('finalPrice').textContent = final.toLocaleString() + '원';
+  document.getElementById('resultBox').style.display = 'block';
+  document.getElementById('summary').style.display = 'block';
+}
+
+// 처음에 하나 기본으로 추가
+addAddon();
+</script>
+</body>
+</html>
